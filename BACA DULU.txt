@@ -1,0 +1,116 @@
+memakai fitu dari depedency laravelcollective untuk HTML/FORMs
+composer require "laravelcollective/html":"^5.4.0"
+
+composer require codedge/laravel-fpdf
+// config/app.php
+
+return [
+
+    //...
+    
+    'providers' => [
+        // ...
+        
+        /*
+         * Application Service Providers...
+         */
+        // ...
+        Codedge\Fpdf\FpdfServiceProvider::class, // [1]
+    ],
+    
+    // ...
+    
+    'aliases' => [
+        // ...
+        'Fpdf' => Codedge\Fpdf\Facades\Fpdf::class, // [2]
+]
+
+php artisan vendor:publish --provider="Codedge\Fpdf\FpdfServiceProvider" --tag=config
+
+to publish the configuration file to config/fpdf.php.
+
+// app/Http/routes.php | app/routes/web.php
+
+Route::get('/', function () {
+
+    Fpdf::AddPage();
+    Fpdf::SetFont('Courier', 'B', 18);
+    Fpdf::Cell(50, 25, 'Hello World!');
+    Fpdf::Output();
+
+});
+
+
+// app/Http/routes.php | app/routes/web.php
+
+Route::get('/', function (Codedge\Fpdf\Fpdf\Fpdf $fpdf) {
+
+    $fpdf->AddPage();
+    $fpdf->SetFont('Courier', 'B', 18);
+    $fpdf->Cell(50, 25, 'Hello World!');
+    $fpdf->Output();
+
+});
+
+export to excel
+composer require maatwebsite/excel
+
+Add the ServiceProvider in config/app.php
+'providers' => [
+    /*
+     * Package Service Providers...
+     */
+    Maatwebsite\Excel\ExcelServiceProvider::class,
+]
+
+Add the Facade in config/app.php
+'aliases' => [
+    ...
+    'Excel' => Maatwebsite\Excel\Facades\Excel::class,
+]
+
+php artisan vendor:publish
+
+
+composer require yajra/laravel-datatables-oracle
+
+Add Datatables Service Provider and Facade on config/app.php.
+//=== provider:
+Yajra\Datatables\DatatablesServiceProvider::class,
+//=== aliases:
+'Datatables' => Yajra\Datatables\Facades\Datatables::class,
+
+php artisan vendor:publish
+
+//====== TRIGGER
+php artisan make:migration create_trigger
+
+up(){
+    DB::unprepared('CREATE TRIGGER sales_ticket AFTER INSERT ON `transactions` FOR EACH ROW
+        BEGIN
+            UPDATE tickets SET total_ticket=total_ticket - NEW.qty WHERE id=NEW.id_ticket;
+        END');
+}
+
+down(){
+    DB::unprepared('DROP TRIGGER `sales_ticket`');
+}
+
+
+//======export transaction
+php artisan make:export TransactionExport --model=Transaction
+
+
+format rupiah
+//cdn jquery mask
+{!! Form::text('price_ticket',null,['class'=>'form-control uang']) !!}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.15/jquery.mask.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function(){
+        $('.uang').mask('000.000.000',{reverse:true});
+    });
+</script>
+
+//======import excel
+php artisan make:import KategoriImport --model=Kategori
